@@ -12,10 +12,20 @@ namespace SilentRunner
         [STAThread]
         static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            try
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
 
-            EventLog.WriteEntry("System", $"SilentRunner; Action=Start; Args={string.Join(" ", args)}");
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Start; Args={string.Join(" ", args)}");
+
+                EventLog.WriteEntry("System", "SilentRunner; Action=Complete; ExitCode=0");
+            }
+            catch(Exception exc)
+            {
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Error; Error={exc}");
+                throw;
+            }
         }
     }
 }
