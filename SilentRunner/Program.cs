@@ -19,7 +19,23 @@ namespace SilentRunner
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Start; Args={string.Join(" ", args)}");
 
-                EventLog.WriteEntry("System", "SilentRunner; Action=Complete; ExitCode=0");
+                if (args.Length < 1)
+                {
+                    throw new InvalidOperationException("Not enough parameters provided");
+                }
+
+                var subTaskFilename = args[0];
+                var subTaskArgs = string.Join(" ", args.Skip(1).Take(args.Length - 1));
+
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
+                var subtask = Process.Start(subTaskFilename, subTaskArgs);
+
+                subtask.WaitForExit();
+
+                var exitCode = subtask.ExitCode;
+
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Complete; ExitCode={exitCode}");
+                Environment.Exit(exitCode);
             }
             catch(Exception exc)
             {
