@@ -28,7 +28,12 @@ namespace SilentRunner
                 var subTaskArgs = string.Join(" ", args.Skip(1).Take(args.Length - 1));
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
-                var subtask = Process.Start(subTaskFilename, subTaskArgs);
+
+                var startInfo = new ProcessStartInfo(subTaskFilename, subTaskArgs);
+                startInfo.CreateNoWindow = true;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+                var subtask = Process.Start(startInfo);
 
                 subtask.WaitForExit();
 
