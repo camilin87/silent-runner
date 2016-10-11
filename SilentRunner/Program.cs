@@ -24,8 +24,8 @@ namespace SilentRunner
                     throw new InvalidOperationException("Not enough parameters provided");
                 }
 
-                var subTaskFilename = args[0];
-                var subTaskArgs = string.Join(" ", args.Skip(1).Take(args.Length - 1));
+                var subTaskFilename = "cmd";
+                var subTaskArgs = $"/c \"{string.Join(" ", args)}\" > aaa.txt";
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
 
