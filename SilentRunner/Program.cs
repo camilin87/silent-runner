@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,6 +11,9 @@ namespace SilentRunner
 {
     static class Program
     {
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        private static extern System.IntPtr GetCommandLine();
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -18,18 +22,22 @@ namespace SilentRunner
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
-                EventLog.WriteEntry("System", $"SilentRunner; Action=Start; Args={string.Join(" ", args)}");
-
                 if (args.Length < 1)
                 {
                     throw new InvalidOperationException("Not enough parameters provided");
                 }
 
+                var allArgsRaw = Marshal.PtrToStringAuto(GetCommandLine());
+                var currentProcessName = Process.GetCurrentProcess().ProcessName;
+                var argsRaw = allArgsRaw.Substring(currentProcessName.Length + 1);
+
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Start; CommandWithArgs={allArgsRaw}; CurrentProcess={currentProcessName}; Args={argsRaw}");
+                
                 var logsPath = Path.GetTempFileName();
                 EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
                 
                 var subTaskFilename = "cmd";
-                var subTaskArgs = $"/c \"{string.Join(" ", args)}\" > {logsPath} 2>&1";
+                var subTaskArgs = $"/c \"{argsRaw}\" > {logsPath} 2>&1";
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
 
