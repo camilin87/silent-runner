@@ -28,10 +28,18 @@ namespace SilentRunner
                 }
 
                 var allArgsRaw = Marshal.PtrToStringAuto(GetCommandLine());
-                var currentProcessName = Process.GetCurrentProcess().ProcessName;
-                var argsRaw = allArgsRaw.Substring(currentProcessName.Length + 1);
 
-                EventLog.WriteEntry("System", $"SilentRunner; Action=Start; CommandWithArgs={allArgsRaw}; CurrentProcess={currentProcessName}; Args={argsRaw}");
+                var lastProgramIndex = allArgsRaw.IndexOf(" ");
+
+                if (allArgsRaw.StartsWith("\""))
+                {
+                    lastProgramIndex = allArgsRaw.IndexOf("\"", 1);
+                }
+
+                var argsRaw = allArgsRaw.Substring(lastProgramIndex + 1);
+
+
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Start; CommandWithArgs={allArgsRaw};");
                 
                 var logsPath = Path.GetTempFileName();
                 EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
