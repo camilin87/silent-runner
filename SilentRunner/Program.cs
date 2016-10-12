@@ -29,7 +29,7 @@ namespace SilentRunner
                 EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
                 
                 var subTaskFilename = "cmd";
-                var subTaskArgs = $"/c \"{string.Join(" ", args)}\" > {logsPath}";
+                var subTaskArgs = $"/c \"{string.Join(" ", args)}\" > {logsPath} 2>&1";
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
 
