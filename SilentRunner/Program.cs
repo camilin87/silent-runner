@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -24,8 +25,11 @@ namespace SilentRunner
                     throw new InvalidOperationException("Not enough parameters provided");
                 }
 
+                var logsPath = Path.GetTempFileName();
+                EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
+                
                 var subTaskFilename = "cmd";
-                var subTaskArgs = $"/c \"{string.Join(" ", args)}\" > aaa.txt";
+                var subTaskArgs = $"/c \"{string.Join(" ", args)}\" > {logsPath}";
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
 
@@ -38,6 +42,10 @@ namespace SilentRunner
                 subtask.WaitForExit();
 
                 var exitCode = subtask.ExitCode;
+
+                var logsContent = File.ReadAllText(logsPath);
+                EventLog.WriteEntry("System", $"SilentRunner; Logs={logsContent}");
+                File.Delete(logsPath);
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Complete; ExitCode={exitCode}");
                 Environment.Exit(exitCode);
