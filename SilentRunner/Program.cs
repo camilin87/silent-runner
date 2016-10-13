@@ -38,39 +38,44 @@ namespace SilentRunner
 
                 var argsRaw = allArgsRaw.Substring(lastProgramIndex + 1);
 
-
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Start; CommandWithArgs={allArgsRaw};");
                 
-                var logsPath = Path.GetTempFileName();
-                EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
-                
-                var subTaskFilename = "cmd";
-                var subTaskArgs = $"/c \"{argsRaw}\" > {logsPath} 2>&1";
-
-                EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
-
-                var startInfo = new ProcessStartInfo(subTaskFilename, subTaskArgs);
-                startInfo.CreateNoWindow = true;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-
-                var subtask = Process.Start(startInfo);
-
-                subtask.WaitForExit();
-
-                var exitCode = subtask.ExitCode;
-
-                var logsContent = File.ReadAllText(logsPath);
-                EventLog.WriteEntry("System", $"SilentRunner; Logs={logsContent}");
-                File.Delete(logsPath);
+                var exitCode = RunSubtask(argsRaw);
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Complete; ExitCode={exitCode}");
                 Environment.Exit(exitCode);
             }
             catch(Exception exc)
             {
-                EventLog.WriteEntry("System", $"SilentRunner; Action=Error; Error={exc}");
+                EventLog.WriteEntry("System", $"SilentRunner; Action=Error; Error={exc}", EventLogEntryType.Error);
                 throw;
             }
+        }
+
+        private static int RunSubtask(string argsRaw)
+        {
+            var logsPath = Path.GetTempFileName();
+//                EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
+
+            var subTaskFilename = "cmd";
+            var subTaskArgs = $"/c \"{argsRaw}\" > {logsPath} 2>&1";
+
+            EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Subtask={subTaskFilename}; Args={subTaskArgs}");
+
+            var startInfo = new ProcessStartInfo(subTaskFilename, subTaskArgs);
+            startInfo.CreateNoWindow = true;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+            var subtask = Process.Start(startInfo);
+
+            subtask.WaitForExit();
+
+            var exitCode = subtask.ExitCode;
+
+            var logsContent = File.ReadAllText(logsPath);
+            EventLog.WriteEntry("System", $"SilentRunner; Logs={logsContent}");
+            File.Delete(logsPath);
+            return exitCode;
         }
     }
 }
