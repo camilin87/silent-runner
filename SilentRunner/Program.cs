@@ -40,7 +40,19 @@ namespace SilentRunner
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Start; CommandWithArgs={allArgsRaw};");
 
-                var exitCode = RunSubtask(argsRaw);
+                var exitCode = 0;
+
+                while (true)
+                {
+                    exitCode = RunSubtask(argsRaw);
+
+                    if (exitCode != 0)
+                    {
+                        break;
+                    }
+
+                    System.Threading.Thread.Sleep(30000);
+                }
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Complete; ExitCode={exitCode}");
                 Environment.Exit(exitCode);
