@@ -39,13 +39,13 @@ namespace SilentRunner
                 var argsRaw = allArgsRaw.Substring(lastProgramIndex + 1);
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Start; CommandWithArgs={allArgsRaw};");
-                
+
                 var exitCode = RunSubtask(argsRaw);
 
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Complete; ExitCode={exitCode}");
                 Environment.Exit(exitCode);
             }
-            catch(Exception exc)
+            catch (Exception exc)
             {
                 EventLog.WriteEntry("System", $"SilentRunner; Action=Error; Error={exc}", EventLogEntryType.Error);
                 throw;
@@ -55,7 +55,7 @@ namespace SilentRunner
         private static int RunSubtask(string argsRaw)
         {
             var logsPath = Path.GetTempFileName();
-//                EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
+            //                EventLog.WriteEntry("System", $"SilentRunner; TempLogsFile={logsPath}");
 
             var subTaskFilename = "cmd";
             var subTaskArgs = $"/c \"{argsRaw}\" > {logsPath} 2>&1";
@@ -73,8 +73,11 @@ namespace SilentRunner
             var exitCode = subtask.ExitCode;
 
             var logsContent = File.ReadAllText(logsPath);
-            EventLog.WriteEntry("System", $"SilentRunner; Logs={logsContent}");
+            EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; Logs={logsContent}");
             File.Delete(logsPath);
+
+            EventLog.WriteEntry("System", $"SilentRunner; Action=Spawn; ExitCode={exitCode}");
+
             return exitCode;
         }
     }
